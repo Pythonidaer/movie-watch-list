@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import MovieItem from "./MovieItem";
+import { FaSort, FaSortAlphaDown, FaSortAlphaUp, FaLayerGroup, FaRandom } from "react-icons/fa";
 
 export default function MovieListPage() {
   const [movies, setMovies] = useState([]);
@@ -14,6 +15,7 @@ export default function MovieListPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addingMovie, setAddingMovie] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isShuffled, setIsShuffled] = useState(false);
 
   // Fetch movies on component mount
   useEffect(() => {
@@ -130,18 +132,26 @@ export default function MovieListPage() {
   const handleSort = () => {
     const newOrder = sortOrder === "asc" ? "desc" : "asc";
     setSortOrder(newOrder);
+    // Exit shuffle mode when sorting
+    if (isShuffled) setIsShuffled(false);
   };
 
   // Random shuffle
   const shuffleMovies = () => {
-    const shuffled = [...movies].sort(() => Math.random() - 0.5);
+    const shuffled = [...movies];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
     setMovies(shuffled);
+    // Need to set isShuffled to true so processedMovies() doesn't re-sort
+    setIsShuffled(true);
   };
 
   // Process movies based on sort and group settings
   const processedMovies = () => {
-    // First sort the movies
-    let sorted = [...movies].sort((a, b) => {
+    // If in shuffle mode, don't re-sort
+    let sorted = isShuffled ? [...movies] : [...movies].sort((a, b) => {
       if (sortOrder === "asc") {
         return a.name.localeCompare(b.name);
       } else {
@@ -172,13 +182,13 @@ export default function MovieListPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 bg-[#ff458c] hover:bg-[#e03a7c] rounded-md transition-colors"
+              className="px-4 py-2 bg-[#ff458c] hover:bg-[#e03a7c] text-white rounded-md transition-colors cursor-pointer"
             >
               Add Movie
             </button>
             <button
               onClick={() => signOut()}
-              className="px-4 py-2 bg-[#529ecc] hover:bg-[#3d7ea6] rounded-md transition-colors"
+              className="px-4 py-2 bg-[#529ecc] hover:bg-[#3d7ea6] text-white rounded-md transition-colors text-sm cursor-pointer"
             >
               Sign Out
             </button>
@@ -203,35 +213,30 @@ export default function MovieListPage() {
         <div className="bg-[#1d2c3c] rounded-lg p-4 mb-6 flex flex-wrap gap-3 items-center">
           <button
             onClick={handleSort}
-            className="px-3 py-1.5 bg-[#529ecc] hover:bg-[#3d7ea6] rounded-md transition-colors text-sm flex items-center gap-1"
+            className="px-4 py-3 bg-[#529ecc] hover:bg-[#3d7ea6] rounded-md transition-colors text-sm flex items-center justify-center min-w-[48px] cursor-pointer"
+            title={`Sort ${sortOrder === "asc" ? "A-Z" : "Z-A"}`}
           >
-            Sort {sortOrder === "asc" ? "A-Z" : "Z-A"}
-            {sortOrder === "asc" ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-              </svg>
-            )}
+            {sortOrder === "asc" ? <FaSortAlphaDown size={24} /> : <FaSortAlphaUp size={24} />}
           </button>
           
           <button
-            onClick={() => setGroupByGenre(!groupByGenre)}
-            className={`px-3 py-1.5 rounded-md transition-colors text-sm ${groupByGenre ? 'bg-[#ff458c] hover:bg-[#e03a7c]' : 'bg-[#529ecc] hover:bg-[#3d7ea6]'}`}
+            onClick={() => {
+              setGroupByGenre(!groupByGenre);
+              // Exit shuffle mode when grouping/ungrouping
+              if (isShuffled) setIsShuffled(false);
+            }}
+            className={`px-4 py-3 rounded-md transition-colors text-sm flex items-center justify-center min-w-[48px] cursor-pointer ${groupByGenre ? 'bg-[#ff458c] hover:bg-[#e03a7c]' : 'bg-[#529ecc] hover:bg-[#3d7ea6]'}`}
+            title={groupByGenre ? "Ungroup" : "Group by Genre"}
           >
-            {groupByGenre ? "Ungroup" : "Group by Genre"}
+            <FaLayerGroup size={24} />
           </button>
           
           <button
             onClick={shuffleMovies}
-            className="px-3 py-1.5 bg-[#529ecc] hover:bg-[#3d7ea6] rounded-md transition-colors text-sm flex items-center gap-1"
+            className="px-4 py-3 bg-[#529ecc] hover:bg-[#3d7ea6] rounded-md transition-colors text-sm flex items-center justify-center min-w-[48px] cursor-pointer"
+            title="Random Shuffle"
           >
-            Random Shuffle
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            <FaRandom size={24} />
           </button>
         </div>
 

@@ -43,7 +43,8 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    // Await params before destructuring to fix the warning
+    const { id } = await params;
     const data = await request.json();
     
     // Find the movie first

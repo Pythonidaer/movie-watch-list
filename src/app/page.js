@@ -78,7 +78,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#ff458c] hover:bg-[#e03a7c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ff458c] transition-colors"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#ff458c] hover:bg-[#e03a7c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ff458c] transition-colors cursor-pointer"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
@@ -86,13 +86,15 @@ export default function Home() {
         </div>
         
         {/* GIF placeholder */}
-        <div className="p-4 bg-[#141e2a] flex justify-center">
-          <div className="relative w-full h-48">
+        <div className="bg-[#141e2a] flex justify-center p-0 overflow-hidden">
+          <div className="relative w-full h-56">
             <Image
               src="/dandadan.gif"
               alt="Tumblr-inspired GIF"
               fill
-              style={{ objectFit: "contain" }}
+              sizes="(max-width: 768px) 100vw, 500px"
+              style={{ objectFit: "cover" }}
+              className="w-full h-full"
               priority
             />
           </div>
